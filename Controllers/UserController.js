@@ -29,7 +29,6 @@ module.exports.login = async (req,res)=>{
     try {
         let user = await User.findOne({email});
         
-        console.log(user);
         if(!user || (user.password!==password)){
             return res.status(400).json({error:"email/password is wrong"});
         }
