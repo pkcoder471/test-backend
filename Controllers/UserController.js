@@ -1,5 +1,7 @@
 const User = require("../Models/User");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const jwt_secret = "pk471";
 
 module.exports.createUser= async (req,res)=>{
     const {name,email,password} = req.body;
@@ -19,7 +21,15 @@ module.exports.createUser= async (req,res)=>{
                 password:pass
             });
 
-        return res.json(user);
+        const data = {
+            user:{
+                id:user.id
+            }
+        }
+
+        const authToken = jwt.sign(data,jwt_secret);
+
+        return res.json({authToken});
         
     } catch (error) {
         console.log(error);
@@ -46,8 +56,28 @@ module.exports.login = async (req,res)=>{
             return res.status(400).json({error:"email/password is wrong"});
         }
         
-        return res.json(user);
+        const data = {
+            user:{
+                id:user.id
+            }
+        }
+
+        const authToken = jwt.sign(data,jwt_secret);
+
+        return res.json({authToken});
         
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error:"Internal Server Error"}); 
+    }
+}
+
+module.exports.getUser = async (req,res)=>{
+    try {
+        const id = req.user.id;
+        let user = await User.findById(id).select('-password');
+
+        res.send(user);
     } catch (error) {
         console.log(error);
         res.status(500).json({error:"Internal Server Error"}); 
