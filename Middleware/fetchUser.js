@@ -3,7 +3,7 @@ const jwt_secret="pk471";
 
 const fetchUser = (req,res,next) =>{
 
-    const authToken = req.header('auth-Token');
+    const authToken = req.header('token');
     if(!authToken){
         return res.status(401).send("unauthorized");
     }

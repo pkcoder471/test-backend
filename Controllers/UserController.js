@@ -2,9 +2,15 @@ const User = require("../Models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const jwt_secret = "pk471";
+const {validationResult} = require('express-validator');
 
 module.exports.createUser= async (req,res)=>{
     const {name,email,password} = req.body;
+    let success = false;
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({errors:errors.array()});
+    }
 
     try {
         let user = await User.findOne({email});
@@ -28,8 +34,8 @@ module.exports.createUser= async (req,res)=>{
         }
 
         const authToken = jwt.sign(data,jwt_secret);
-
-        return res.json({authToken});
+        success = true;
+        return res.json({success,authToken});
         
     } catch (error) {
         console.log(error);
@@ -39,18 +45,21 @@ module.exports.createUser= async (req,res)=>{
 
 module.exports.login = async (req,res)=>{
     const {email,password} = req.body;
-    
+    let success = false;
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({errors:errors.array()});
+    }
+
     try {
         let user = await User.findOne({email});
+        
         
         if(!user){
             return res.status(400).json({error:"email/password is wrong"});
         }
 
-        const salt = await bcrypt.genSalt(10);
-        const pass = await bcrypt.hash(password,salt);
-
-        const comparePassword = await bcrypt.compare(user.password,pass);
+        const comparePassword = await bcrypt.compare(password,user.password);
 
         if(!comparePassword){
             return res.status(400).json({error:"email/password is wrong"});
@@ -63,8 +72,8 @@ module.exports.login = async (req,res)=>{
         }
 
         const authToken = jwt.sign(data,jwt_secret);
-
-        return res.json({authToken});
+        success = true;
+        return res.json({success,authToken});
         
     } catch (error) {
         console.log(error);
